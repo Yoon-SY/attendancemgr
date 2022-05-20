@@ -20,6 +20,7 @@ def fileanalyze(f):
             return ret
         ret.append(s)
 
+# Pretty-print numbers to two digits
 def ppint(n):
     return str(n).rjust(2, "0")
 
@@ -68,9 +69,16 @@ class WindowClass(QMainWindow, form_class):
 
     def update(self):
         epoch = dt.datetime.now()
+        estr = ":".join([ppint(epoch.hour), ppint(epoch.minute), ppint(epoch.second)])
         for i in range(1, 31):
             num = ppint(i)
-            exec(f"if self.std_btn_{num}.isChecked() and (not self.std_time_{num}.text()): self.std_time_{num}.setText(':'.join([ppint(epoch.hour), ppint(epoch.minute), ppint(epoch.second)]))")
+            # If arriving after 0750 AM, the text is colored bold red.
+            exec(f"""
+if self.std_btn_{num}.isChecked() and (not self.std_time_{num}.text()):
+    if epoch.hour*60 + epoch.minute <= 470:
+        self.std_time_{num}.setText(estr)
+    else:
+        self.std_time_{num}.setText("<b><font color='#FF0000'>{estr}</b>")""")
 
     def load(self): # Imported from guiyajamgr but edited
         stage = 0; text = []
@@ -85,7 +93,7 @@ class WindowClass(QMainWindow, form_class):
             # FileNotFoundError is exception-handled below
 
             # Assigns each value
-            name = [*map(str,text[4][3:].replace(':','').lstrip().split(', '))]
+            name = [*map(str,text[4][3:].replace(":","").lstrip().split(", "))]
             stage = 2
             # IndexError in case of illegal data input, and
             # ValueError in case of indentation problem are exception-handled below
@@ -123,7 +131,7 @@ class WindowClass(QMainWindow, form_class):
             print("[Errno A9] 알 수 없는 오류 발생. 콘솔창을 확인해주세요."); print(f"{e},\n{stage = }")
 
 # Run
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("프로그램 준비 중...")
     app = QApplication(sys.argv)
     myWindow = WindowClass()
